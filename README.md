@@ -59,6 +59,25 @@ More information is only accessible by people who are already enrolled in Term 2
 of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/f1820894-8322-4bb3-81aa-b26b3c6dcbaf/lessons/e8235395-22dd-4b87-88e0-d108c5e5bbf4/concepts/6a4d8d42-6a04-4aa6-b284-1697c0fd6562)
 for instructions and the project rubric.
 
+## Controller structure
+Two controllers are used for control of the car, one for Steering angle control and the second one for Throttle control. Combination of these two controllers allows the car to drive many laps without going out of the path. However, without feedforward compensation, the PID steering control system response is still slow and oscillatory. 
+
+## Effect each of the PID terms in Steering Controller
+### Proportional term
+The proportional term produces an output value that is proportional to the steering error value. The proportional gain was adjusted to provide enough steering angle to handle sharp turns. A high proportional gain results in a large change in the steering angle for a given the error. If the proportional gain is too high, the car can become unstable 
+
+### Integral term
+The integral term accelerates the return of the car towards center and eliminates the residual steady-state error that occurs with a pure proportional controller. However, since the integral term responds to accumulated errors from the past, it can cause the present value to overshoot the desire car position.
+
+### Derivative term
+Derivative action predicts system behavior and avoid sudden error exceeding and thus improves stability of the car.
+
+## Controller tuning
+Manual tuning and re-running the simulation is used for the controller tunning. In this approach for Steering PID controller, first I set K_i and K_d values to zero. then, I increased the K_p until the car oscillates, then I set the K_p to half of that value. Then, I increased K_i until any car remains in the center of the road. However, too much K_i will cause instability. Finally, I increased K_d to reduce oscillations. However, too much K_d will cause excessive response and overshoot. Similarly, a PD controller is tunned for throttle control to reduce car speed when it is the near edge of the road or when it oscillates. 
+
+## Simulation results video
+The rsult of tuned controller in driving car around the track is shown here: https://www.youtube.com/watch?v=CJRaNQbNVHQ
+
 ## Hints!
 
 * You don't have to follow this directory structure, but if you do, your work
