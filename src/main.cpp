@@ -30,23 +30,25 @@ string hasData(string s) {
   return "";
 }
 
-int main(int argc, char *argv[]) {
+int main() {
   uWS::Hub h;
 
+  // defined steering PID controller
   PID pid_steering;
+  
+  // defined  PID controller
   PID pid_throttle;
 
   /**
-   * TODO: Initialize the pid variable.
+   * Initialize the pid variable.
    */
-  double init_kp_steer = atof(argv[1]);
-  double init_ki_steer = atof(argv[2]);
-  double init_kd_steer = atof(argv[3]);
+  double init_kp_steer = -.1;
+  double init_ki_steer = -.00015;
+  double init_kd_steer = -1.0;
 
-  double init_kp_throt = atof(argv[4]);
-  double init_ki_throt = atof(argv[5]);
-  double init_kd_throt = atof(argv[6]);
-
+  double init_kp_throt = .15;
+  double init_ki_throt = 0.;
+  double init_kd_throt = 0.6;
 
   pid_steering.Init(init_kp_steer, init_ki_steer, init_kd_steer);
   pid_throttle.Init(init_kp_throt, init_ki_throt, init_kd_throt);
@@ -72,34 +74,42 @@ int main(int argc, char *argv[]) {
           double angle = std::stod(j[1]["steering_angle"].get<string>());
           double steer_value;
 		  double throt_value;
+		  // steer saturation limit
 		  double max_steer_value = .5;
+
+		  // throttle saturation limit
 		  double max_throt_value = .6;
-          /**
-           * TODO: Calculate steering value here, remember the steering value is
-           *   [-1, 1].
-           * NOTE: Feel free to play around with the throttle and speed.
-           *   Maybe use another PID controller to control the speed!
-           */
+
+		  // update steer pid error
 		  pid_steering.UpdateError(cte);
+
+		  // update throttle pid error
 		  pid_throttle.UpdateError(fabs(cte));
-          // DEBUG
+
+          // Calculate Steer value
 		  steer_value = pid_steering.TotalError();
+
+		  // Calculate Throttle value 
+
 		  throt_value = pid_throttle.Kp * fabs(pid_throttle.p_error) + pid_throttle.Kd * fabs(pid_throttle.d_error);
-          //std::cout << "CTE: " << cte << " Steering Value: " << steer_value << " Throttle Value: "<< throt_value
-           //         << std::endl;
-		  
+
+		  // check for saturation of steering value
 		  if (fabs(steer_value) > max_steer_value) {
 			  steer_value = fabs(steer_value) / steer_value * max_steer_value;
 		  }
+
+		  // check for saturation of throttle value
 		  if (fabs(throt_value) > max_throt_value) {
 			  throt_value = fabs(throt_value) / throt_value * max_throt_value;
 		  }
+
+		  // recovery in case of low speed motion
 		  if (fabs(speed) < 12) {
 			  throt_value = -6.;
-
 		  }
 			  
-					  
+		// DEBUG
+		/*
 		 std::cout << "Steer value breakdown: " << std::endl;
 		 std::cout << "P: " << pid_steering.Kp * pid_steering.p_error << std::endl;
 		 std::cout << "D: " << pid_steering.Kd * pid_steering.d_error << std::endl;
@@ -108,6 +118,7 @@ int main(int argc, char *argv[]) {
 		 std::cout << "Throttle value breakdown: " << std::endl;
 		 std::cout << "P: " << pid_throttle.Kp * fabs(pid_throttle.p_error) << std::endl;
 		 std::cout << "D: " << pid_throttle.Kd * fabs(pid_throttle.d_error) << std::endl;
+		 */
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;
